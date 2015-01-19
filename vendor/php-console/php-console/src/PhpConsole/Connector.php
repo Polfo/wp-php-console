@@ -294,6 +294,9 @@ class Connector {
 
 		if($this->isActiveClient() && $this->isAuthorized() && isset($_POST[Connector::POST_VAR_NAME]['eval'])) {
 			$request = $_POST[Connector::POST_VAR_NAME]['eval'];
+			if (function_exists('stripslashes_deep')) { //wordpress environment
+				$request = stripslashes_deep($request); //remove magic quotes added by wordpress
+			}
 			if(!isset($request['data']) || !isset($request['signature'])) {
 				throw new \Exception('Wrong PHP Console eval request');
 			}

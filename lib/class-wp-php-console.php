@@ -384,8 +384,6 @@ class WP_PHP_Console {
 	 */
 	public function init() {
 
-		if ( ! class_exists( 'PhpConsole\Connector' ) )
-			return;
 		$options = $this->options;
 
 		$password = isset( $options['password'] ) ? $options['password'] : '';

@@ -47,6 +47,14 @@ class WP_PHP_Console {
 	protected $options;
 
 	/**
+	 * Options.
+	 *
+	 * @since    tbd > 1.3.1
+	 * @access   protected
+	 */
+	protected $connector;
+
+	/**
 	 * Construct.
 	 *
 	 * @since    1.0.0
@@ -56,10 +64,9 @@ class WP_PHP_Console {
 		$this->plugin_name = 'wp-php-console';
 		$this->version = '1.3.1';
 		$this->options = get_option( 'wp_php_console' );
+		$this->connector = PhpConsole\Connector::getInstance();
 
 		// Perform PHP Console initialisation required asap for other code to be able to output to the JavaScript console
-
-		$connector = PhpConsole\Connector::getInstance();
 
 		// Apply 'register' option to PHP Console
 		if ( ! empty( $this->options['register'] ) ) {
@@ -71,12 +78,12 @@ class WP_PHP_Console {
 
 		// Apply 'stack' option to PHP Console
 		if ( ! empty( $this->options['stack'] ) ) {
-			$connector->getDebugDispatcher()->detectTraceAndSource = true;
+			$this->connector->getDebugDispatcher()->detectTraceAndSource = true;
 		}
 
 		// Apply 'short' option to PHP Console
 		if ( ! empty( $this->options['short'] ) ) {
-			$connector->setSourcesBasePath($_SERVER['DOCUMENT_ROOT']);
+			$this->connector->setSourcesBasePath($_SERVER['DOCUMENT_ROOT']);
 		}
 
 		// Initialise WordPress actions
@@ -379,7 +386,6 @@ class WP_PHP_Console {
 
 		if ( ! class_exists( 'PhpConsole\Connector' ) )
 			return;
-
 		$options = $this->options;
 
 		$password = isset( $options['password'] ) ? $options['password'] : '';
@@ -401,8 +407,7 @@ class WP_PHP_Console {
 			$_POST[PhpConsole\Connector::POST_VAR_NAME] = stripslashes_deep($_POST[PhpConsole\Connector::POST_VAR_NAME]);
 		}
 
-		$connector = PhpConsole\Connector::getInstance();
-		$connector->setPassword( $password );
+		$this->connector->setPassword( $password );
 
 		$handler = PhpConsole\Handler::getInstance();
 		if ( PhpConsole\Handler::getInstance()->isStarted() != true )
@@ -410,13 +415,13 @@ class WP_PHP_Console {
 
 		$enableSslOnlyMode = isset( $options['ssl'] ) ? ( ! empty( $options['ssl'] ) ? $options['ssl'] : '' ) : '';
 		if ( $enableSslOnlyMode == true )
-			$connector->enableSslOnlyMode();
+			$this->connector->enableSslOnlyMode();
 
 		$allowedIpMasks = isset( $options['ip'] ) ? ( ! empty( $options['ip'] ) ? explode( ',', $options['ip'] ) : '' ) : '';
 		if ( is_array( $allowedIpMasks ) && ! empty( $allowedIpMasks ) )
-			$connector->setAllowedIpMasks( (array) $allowedIpMasks );
+			$this->connector->setAllowedIpMasks( (array) $allowedIpMasks );
 
-		$evalProvider = $connector->getEvalDispatcher()->getEvalProvider();
+		$evalProvider = $this->connector->getEvalDispatcher()->getEvalProvider();
 
 		$evalProvider->addSharedVar( 'uri', $_SERVER['REQUEST_URI'] );
 		$evalProvider->addSharedVarReference( 'post', $_POST );
@@ -426,7 +431,7 @@ class WP_PHP_Console {
 		$evalProvider->addSharedVarReference( 'dirs', $openBaseDirs );
    	    $evalProvider->setOpenBaseDirs( $openBaseDirs );
 
-		$connector->startEvalRequestsListener();
+		$this->connector->startEvalRequestsListener();
 
 	}
 
